@@ -1,0 +1,34 @@
+services:
+  mysql:
+    image: mysql:8.0
+    environment:
+        MYSQL_ROOT_PASSWORD: "6666"
+        MYSQL_DATABASE: resourceflow
+        TZ: Asia/Shanghai
+    ports:
+        - "3307:3306"
+    volumes:
+      - resourceflow_mysql_data:/var/lib/mysql
+    command:
+      - --character-set-server=utf8mb4
+      - --collation-server=utf8mb4_general_ci
+    healthcheck:
+      test: ["CMD-SHELL", "mysqladmin ping -h localhost -uroot -p$${MYSQL_ROOT_PASSWORD} --silent"]
+      interval: 5s
+      timeout: 5s
+      retries: 20
+      start_period: 20s
+  redis:
+    image: redis:8-alpine
+    ports:
+      - "6379:6379"
+    volumes:
+            - resourceflow_redis_data:/data
+    healthcheck:
+      test: ["CMD", "redis-cli", "ping"]
+      interval: 5s
+      timeout: 5s
+      retries: 20
+volumes:
+      resourceflow_mysql_data:
+      resourceflow_redis_data:

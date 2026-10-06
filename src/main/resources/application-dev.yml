@@ -1,0 +1,12 @@
+resoureflow:
+  datasource:
+    driver-class-name: com.mysql.cj.jdbc.Driver
+    host: localhost
+    port: 3307
+    database: resourceflow
+    username: root
+    password: 6666
+  redis:
+    host: localhost
+    port: 6379
+    database: 0

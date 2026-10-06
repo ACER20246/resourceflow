@@ -1,0 +1,32 @@
+spring:
+  datasource:
+    driver-class-name: ${resoureflow.datasource.driver-class-name}
+    url: jdbc:mysql://${resoureflow.datasource.host}:${resoureflow.datasource.port}/${resoureflow.datasource.database}?serverTimezone=Asia/Shanghai&useUnicode=true&characterEncoding=utf-8&zeroDateTimeBehavior=convertToNull&useSSL=false&allowPublicKeyRetrieval=true
+    username: ${resoureflow.datasource.username}
+    password: ${resoureflow.datasource.password}
+
+  data:
+    redis:
+      host: ${resoureflow.redis.host}
+      port: ${resoureflow.redis.port}
+      database: ${resoureflow.redis.database}
+
+mybatis-plus:
+  #mapper配置文件
+  mapper-locations: classpath:mapper/*.xml
+  type-aliases-package: com.resoureflow.entity
+  configuration:
+    #开启驼峰命名
+    map-underscore-to-camel-case: true
+
+#日志
+logging:
+  pattern:
+    console: "%d{yyyy-MM-dd HH:mm:ss.SSS} [%thread] %-5level [%X{traceId}] %logger{36} - %msg%n"
+#swagger
+springdoc:
+  api-docs:
+    path: /v3/api-docs
+  swagger-ui:
+    path: /swagger-ui.html
+
