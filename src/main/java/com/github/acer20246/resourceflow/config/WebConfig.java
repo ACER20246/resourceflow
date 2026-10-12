@@ -6,6 +6,7 @@ import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
 
 @Configuration
+//处理traceId的过滤器注册
 public class WebConfig {
     @Bean
     public FilterRegistrationBean<TraceIdFilter>  traceIdFilter() {
