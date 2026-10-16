@@ -7,7 +7,8 @@ import org.springframework.web.bind.annotation.RestController;
 @Slf4j
 @RestController
 public class CategoryController {
-    @RequestMapping("/categories")
+
+    @RequestMapping("/api/category")
     public void getCategory() {
         log.info("获取分类信息");
     }

@@ -46,7 +46,7 @@
 ## 资源分类
 
 ### 查询分类
-`GET /api/categories`；请求参数：无。
+`GET /api/category`；请求参数：无。
 
 响应 `data`：
 ```json
@@ -54,7 +54,7 @@
 ```
 
 ### 新增分类（管理员）
-`POST /api/admin/categories`
+`POST /api/admin/category`
 
 请求参数：`{"name":"研修室","description":"会议与学习空间"}`
 响应 `data`：`{"categoryId":1,"name":"研修室","description":"会议与学习空间","status":"ENABLED"}`

@@ -6,8 +6,10 @@ import org.springframework.http.converter.HttpMessageNotReadableException;
 import org.springframework.web.bind.MethodArgumentNotValidException;
 import org.springframework.web.bind.annotation.ExceptionHandler;
 import org.springframework.web.bind.annotation.RestControllerAdvice;
+import lombok.extern.slf4j.Slf4j;
 
 @RestControllerAdvice
+@Slf4j
 public class GlobalExceptionHandler{
     /**
      * 处理业务异常
@@ -42,5 +44,11 @@ public class GlobalExceptionHandler{
     @ExceptionHandler(HttpMessageNotReadableException.class)
     public Result<Void> HandleHttpMessageNotReadableException(HttpMessageNotReadableException e){
         return Result.error("请求参数异常", HttpStatus.BAD_REQUEST.value());
+    }
+
+    @ExceptionHandler(Exception.class)
+    public Result<Void> handleUnexpectedException(Exception e) {
+        log.error("未处理的服务端异常", e);
+        return Result.error("服务器内部错误", HttpStatus.INTERNAL_SERVER_ERROR.value());
     }
 }

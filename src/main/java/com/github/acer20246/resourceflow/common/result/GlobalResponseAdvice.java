@@ -8,8 +8,10 @@ import org.springframework.http.ResponseEntity;
 import org.springframework.http.converter.HttpMessageConverter;
 import org.springframework.http.server.ServerHttpRequest;
 import org.springframework.http.server.ServerHttpResponse;
+import org.springframework.web.bind.annotation.ControllerAdvice;
 import org.springframework.web.servlet.mvc.method.annotation.ResponseBodyAdvice;
 
+@ControllerAdvice
 public class GlobalResponseAdvice implements ResponseBodyAdvice<Object> {
     @Override
     //Class<?> returnClass = returnType.getParameterType();获取返回数据类型。class
