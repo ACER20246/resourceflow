@@ -66,7 +66,7 @@
 响应 `data`：同新增分类。
 
 ### 启用/停用分类（管理员）
-`PATCH /api/admin/categories/{categoryId}/status`；路径参数：`categoryId`（long，必填）。
+`PATCH /api/admin/category/{categoryId}/status`；路径参数：`categoryId`（long，必填）。
 
 请求参数：`{"status":"DISABLED"}`
 响应 `data`：`{"categoryId":1,"status":"DISABLED"}`

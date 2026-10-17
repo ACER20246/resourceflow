@@ -27,10 +27,7 @@ logging:
     console: "%d{yyyy-MM-dd HH:mm:ss.SSS} [%thread] %-5level [%X{traceId}] %logger{36} - %msg%n"
 #swagger
 springdoc:
-  api-docs:
-    path: /v3/api-docs
-  swagger-ui:
-    path: /api/swagger-ui.html
+  packages-to-scan: com.github.acer20246.resourceflow.controller
 
 resourceflow:
   jwt:

@@ -7,10 +7,10 @@ import lombok.Data;
 import lombok.NoArgsConstructor;
 
 @Builder
-@NoArgsConstructor
-@AllArgsConstructor
 @Schema(description = "用户DTO")
 @Data
+@NoArgsConstructor
+@AllArgsConstructor
 public class UserDTO {
     @Schema(description = "用户名")
     private String username;

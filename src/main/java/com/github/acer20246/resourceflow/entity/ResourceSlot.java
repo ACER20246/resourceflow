@@ -15,7 +15,7 @@ import java.util.Date;
  记录某个研修室在某个日期的具体可预约时间段，
  例如“2026-10-08 09:00 至 10:00”。它是系统控制预约库存和防超卖的核心表。
  */
-public class resourceSlot {
+public class ResourceSlot {
     private Long slotId;
     //时间段Id
     private Long resourceId;

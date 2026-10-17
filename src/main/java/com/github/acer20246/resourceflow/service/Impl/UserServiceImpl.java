@@ -3,11 +3,13 @@ package com.github.acer20246.resourceflow.service.Impl;
 import com.baomidou.mybatisplus.core.conditions.query.LambdaQueryWrapper;
 import com.baomidou.mybatisplus.extension.plugins.pagination.Page;
 import com.github.acer20246.resourceflow.common.exception.BusinessException;
+import com.github.acer20246.resourceflow.common.result.PageResult;
 import com.github.acer20246.resourceflow.dto.UserDTO;
 import com.github.acer20246.resourceflow.dto.UserPageQueryDTO;
 import com.github.acer20246.resourceflow.entity.User;
 import com.github.acer20246.resourceflow.mapper.UserMapper;
 import com.github.acer20246.resourceflow.service.UserService;
+import com.github.acer20246.resourceflow.vo.UserVO;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.beans.BeanUtils;
@@ -15,6 +17,7 @@ import org.springframework.stereotype.Service;
 
 import java.time.LocalDateTime;
 import java.util.List;
+import java.util.stream.Collectors;
 
 @Slf4j
 @Service
@@ -51,7 +54,7 @@ public class UserServiceImpl implements UserService {
     }
 
     @Override
-    public List<User> listUsers(UserPageQueryDTO queryDTO) {
+    public PageResult<UserVO> listUsers(UserPageQueryDTO queryDTO) {
         log.info("分页查询用户: {}", queryDTO);
         long pageNum = queryDTO.getPageNum() == null || queryDTO.getPageNum() < 1 ? 1 : queryDTO.getPageNum();
         long pageSize = queryDTO.getPageSize() == null || queryDTO.getPageSize() < 1 ? 10 : queryDTO.getPageSize();
@@ -60,7 +63,16 @@ public class UserServiceImpl implements UserService {
         wrapper.like(queryDTO.getUsername() != null && !queryDTO.getUsername().isBlank(), User::getUsername, queryDTO.getUsername())
                 .eq(queryDTO.getStudentNumber() != null && !queryDTO.getStudentNumber().isBlank(), User::getStudentNumber, queryDTO.getStudentNumber());
         userMapper.selectPage(page, wrapper);
-        return page.getRecords();
+        List<UserVO> records = page.getRecords().stream()
+                .map(this::convertToUserVO)
+                .collect(Collectors.toList());
+        return new PageResult<>(records, page.getCurrent(), page.getSize(), page.getTotal());
+    }
+
+    private UserVO convertToUserVO(User user) {
+        UserVO userVO = new UserVO();
+        BeanUtils.copyProperties(user, userVO);
+        return userVO;
     }
 
     @Override

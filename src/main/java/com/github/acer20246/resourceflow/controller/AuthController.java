@@ -10,9 +10,9 @@ import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.web.bind.annotation.*;
 
+@Slf4j
 @RestController
 @RequestMapping("/api/auth")
-@Slf4j
 @Tag(name = "用户相关接口", description = "用户相关接口")
 @RequiredArgsConstructor
 public class AuthController {

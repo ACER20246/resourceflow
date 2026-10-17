@@ -12,7 +12,6 @@ import java.time.LocalDateTime;
 @NoArgsConstructor
 @AllArgsConstructor
 public class User {
-
     @TableId(value = "user_id", type = IdType.AUTO)
     private Long userId;
     private String studentNumber;

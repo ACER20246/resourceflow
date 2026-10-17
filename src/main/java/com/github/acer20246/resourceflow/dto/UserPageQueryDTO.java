@@ -7,10 +7,10 @@ import lombok.Data;
 import lombok.NoArgsConstructor;
 
 @Builder
-@NoArgsConstructor
-@AllArgsConstructor
 @Schema(description = "用户分页查询DTO")
 @Data
+@NoArgsConstructor
+@AllArgsConstructor
 public class UserPageQueryDTO {
     @Schema(description = "姓名")
     private String username;

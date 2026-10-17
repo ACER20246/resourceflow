@@ -12,7 +12,7 @@ import java.time.LocalDateTime;
 /*
   记录研修室时间段已满时，用户按照先来先服务原则加入的候补队列
  */
-public class waitlist {
+public class Waitlist {
     private Long waitlistId;
     private Long userId;
     private Long slotId;
