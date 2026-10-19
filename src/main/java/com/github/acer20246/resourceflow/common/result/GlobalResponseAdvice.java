@@ -1,6 +1,7 @@
 package com.github.acer20246.resourceflow.common.result;
 
 import jakarta.annotation.Resource;
+import jakarta.servlet.http.HttpServletRequest;
 import org.jspecify.annotations.Nullable;
 import org.springframework.core.MethodParameter;
 import org.springframework.http.MediaType;
@@ -8,12 +9,25 @@ import org.springframework.http.ResponseEntity;
 import org.springframework.http.converter.HttpMessageConverter;
 import org.springframework.http.server.ServerHttpRequest;
 import org.springframework.http.server.ServerHttpResponse;
+import org.springframework.web.bind.annotation.ControllerAdvice;
 import org.springframework.web.servlet.mvc.method.annotation.ResponseBodyAdvice;
 
+@ControllerAdvice
 public class GlobalResponseAdvice implements ResponseBodyAdvice<Object> {
+    private final HttpServletRequest request;
+
+    public GlobalResponseAdvice(HttpServletRequest request) {
+        this.request = request;
+    }
+
     @Override
     //Class<?> returnClass = returnType.getParameterType();获取返回数据类型。class
     public boolean supports(MethodParameter returnType, Class<? extends HttpMessageConverter<?>> converterType) {
+        String path = request.getRequestURI().substring(request.getContextPath().length());
+        if (path.startsWith("/v3/api-docs")) {
+            return false;
+        }
+
         Class<?> returnClass = returnType.getParameterType();
         //已经是统一相应不包装
         if(Result.class.isAssignableFrom(returnClass)) {
@@ -39,6 +53,12 @@ public class GlobalResponseAdvice implements ResponseBodyAdvice<Object> {
 
     @Override
     public @Nullable Object beforeBodyWrite(@Nullable Object body, MethodParameter returnType, MediaType selectedContentType, Class<? extends HttpMessageConverter<?>> selectedConverterType, ServerHttpRequest request, ServerHttpResponse response) {
+        // SpringDoc endpoints must return the raw OpenAPI document/configuration.
+        // Wrapping swagger-config makes Swagger UI fall back to its Petstore URL.
+        String path = request.getURI().getPath();
+        if (path.equals("/v3/api-docs") || path.startsWith("/v3/api-docs/")) {
+            return body;
+        }
         return Result.success(body);
     }
 }
