@@ -54,25 +54,4 @@ public class JwtUtils {
             throw new RuntimeException("token 为空", e);
         }
     }
-
-    /**
-     * 获取用户 ID
-     */
-    public Long getUserId(String token) {
-
-        Claims claims = parseJWT(token);
-
-        return Long.valueOf(claims.getSubject());
-    }
-
-    /**
-     * 获取角色
-     */
-    public String getRole(String token) {
-
-        Claims claims = parseJWT(token);
-
-        return claims.get("role", String.class);
-    }
-
 }

@@ -5,7 +5,9 @@ import lombok.AllArgsConstructor;
 import lombok.Data;
 import lombok.NoArgsConstructor;
 
+import java.time.LocalDate;
 import java.time.LocalDateTime;
+import java.time.LocalTime;
 import java.util.Date;
 
 @Data
@@ -20,9 +22,9 @@ public class ResourceSlot {
     //时间段Id
     private Long resourceId;
     //研修室ID
-    private LocalDateTime startTime;
-    private LocalDateTime endTime;
-    private Date slotDate;
+    private LocalTime startTime;
+    private LocalTime endTime;
+    private LocalDate slotDate;
     //预约日期
     private Integer bookingCapacity;
     //该时间段允许预约的数量

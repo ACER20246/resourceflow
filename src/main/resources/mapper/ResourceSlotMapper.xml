@@ -1,0 +1,33 @@
+<?xml version="1.0" encoding="UTF-8" ?>
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN"
+        "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+<mapper namespace="com.github.acer20246.resourceflow.mapper.ResourceSlotMapper">
+
+    <!--
+      原子扣减名额：WHERE 中校验剩余名额，影响行数为 0 表示已被抢完。
+      注意 SET 顺序：status 的计算必须在 reserved_count 之前，否则会读到自增后的新值，
+      条件变成 (reserved_count + 1) + 1 >= booking_capacity，导致提前置为 FULL。
+    -->
+    <update id="tryOccupy">
+        UPDATE resource_slot
+        SET status         = IF(reserved_count + 1 &gt;= booking_capacity, 'FULL', 'AVAILABLE'),
+            reserved_count = reserved_count + 1,
+            version        = version + 1,
+            updated_at     = CURRENT_TIMESTAMP(3)
+        WHERE slot_id = #{slotId}
+          AND status IN ('AVAILABLE', 'FULL')
+          AND reserved_count &lt; booking_capacity
+    </update>
+
+    <!-- 回补名额：GREATEST 兜底防止 reserved_count 被减成负数 -->
+    <update id="release">
+        UPDATE resource_slot
+        SET status         = IF(status = 'FULL', 'AVAILABLE', status),
+            reserved_count = GREATEST(reserved_count - 1, 0),
+            version        = version + 1,
+            updated_at     = CURRENT_TIMESTAMP(3)
+        WHERE slot_id = #{slotId}
+          AND reserved_count &gt; 0
+    </update>
+
+</mapper>
