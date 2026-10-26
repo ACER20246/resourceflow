@@ -22,4 +22,6 @@ public class Reservation {
     private LocalDateTime cancelledAt;
     private LocalDateTime completedAt;
     private LocalDateTime updatedAt;
+    private LocalDateTime expiredAt;
+    private LocalDateTime checkedInAt;
 }

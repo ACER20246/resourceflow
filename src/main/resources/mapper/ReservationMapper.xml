@@ -43,13 +43,14 @@
             active_key    = IF(#{target} IN ('PENDING', 'CONFIRMED'), active_key, NULL),
             cancelled_at  = IF(#{target} = 'CANCELLED', #{now}, cancelled_at),
             completed_at  = IF(#{target} = 'COMPLETED', #{now}, completed_at),
+            expired_at    = IF(#{target} = 'EXPIRED', #{now}, expired_at),
             updated_at    = #{now}
         WHERE reservation_id = #{reservationId}
           AND status = #{expected}
     </update>
 
     <!--
-      查询已确认且已过期的预约，用于定时任务扫描过期预约并流转状态。
+      查询已确认的预约，用于定时任务扫描过期预约并流转状态。
       过期条件：当前时间 > 预约结束时间
     -->
     <select id="selectFinishedConfirmed" resultType="com.github.acer20246.resourceflow.entity.Reservation">
@@ -57,6 +58,19 @@
         FROM reservation r JOIN resource_slot s ON s.slot_id = r.slot_id
         WHERE r.status = 'CONFIRMED'
           AND TIMESTAMP(s.slot_date, s.end_time) &lt; #{now}
+          AND r.checked_in_at IS NOT NULL
+        ORDER BY r.reservation_id
+        LIMIT #{limit}
+    </select>
+
+    <!--    新增未签到扫描-->
+    <select id="selectExpiredCheckIn" resultType="com.github.acer20246.resourceflow.entity.Reservation">
+        SELECT r.*
+        FROM reservation r JOIN resource_slot s ON s.slot_id = r.slot_id
+        WHERE r.status = 'CONFIRMED'
+          AND TIMESTAMP(s.slot_date, s.start_time) &lt; #{now}
+          AND TIMESTAMP(s.slot_date, s.start_time) &gt; DATE_SUB(#{now}, INTERVAL #{gracePeriodMinutes} MINUTE)
+          AND r.checked_in_at IS NULL
         ORDER BY r.reservation_id
         LIMIT #{limit}
     </select>

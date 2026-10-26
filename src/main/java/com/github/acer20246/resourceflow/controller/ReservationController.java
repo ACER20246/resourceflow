@@ -77,4 +77,10 @@ public class ReservationController {
                 SecurityUtils.currentUserId(),
                 SecurityUtils.isAdmin());
     }
+    @PostMapping("/{reservationId}/checkin")
+    @Operation(summary = "签到预约", description = "用户签到，标记为已签到状态")
+    public boolean checkInReservation(@PathVariable Long reservationId) {
+        log.info("签到预约: {}", reservationId);
+        return reservationService.checkInReservation(reservationId,SecurityUtils.currentUserId(),SecurityUtils.isAdmin());
+    }
 }

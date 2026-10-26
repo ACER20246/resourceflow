@@ -42,6 +42,8 @@ public class ReservationServiceImpl implements ReservationService {
 
     /** 定时任务单批处理上限，避免长事务。 */
     private static final int TASK_BATCH_SIZE = 200;
+    @Value("${resourceflow.reservation.check-in-grace-minutes:15}")
+    private long checkInGraceMinutes;
 
     private final ReservationMapper reservationMapper;
     private final ResourceSlotMapper resourceSlotMapper;
@@ -190,6 +192,38 @@ public class ReservationServiceImpl implements ReservationService {
         }
         return affected;
     }
+
+    @Override
+    @Transactional(rollbackFor = Exception.class)
+    public boolean checkInReservation(Long reservationId, Long operatorId,boolean admin) {
+        Reservation reservation = requireReservation(reservationId);
+        if (!Objects.equals(reservation.getStatus(), ReservationStatus.CONFIRMED.name())) {
+            throw new BusinessException("预约状态不允许签到");
+        }
+        if(!Objects.equals(reservation.getUserId(),operatorId)&&!admin) {
+            throw new BusinessException("无权操作他人的预约");
+        }
+        if(reservation.getCheckedInAt() != null) {
+            throw new BusinessException("预约已签到");
+        }
+        ResourceSlot slot = resourceSlotMapper.selectById(reservation.getSlotId());
+        if(slot == null) {
+            throw new BusinessException("预约对应的时间段不存在");
+        }
+        LocalDateTime now = LocalDateTime.now();
+        LocalDateTime slotStart = slot.getSlotDate().atTime(slot.getStartTime());
+        if(now.isBefore(slotStart)) {
+            throw new BusinessException("预约尚未开始，无法签到");
+        }
+        if(now.isAfter(slotStart.plusMinutes(checkInGraceMinutes))) {
+            throw new BusinessException("签到已过宽限期，无法签到");
+        }
+        if(reservationMapper.checkInReservation(reservationId) == 0) {
+            throw new BusinessException("预约状态已被并发修改，请刷新后重试");
+        }
+        log.info("预约签到成功: reservationId={}, userId={}", reservationId, operatorId);
+        return true;
+    }
     /**
      * 校验当前状态并执行流转，成功后按目标状态决定是否回补名额。
      */
@@ -271,7 +305,7 @@ public class ReservationServiceImpl implements ReservationService {
         Resource resource = (slot == null || slot.getResourceId() == null)
                 ? null
                 : resourceMapper.selectById(slot.getResourceId());
-
+        LocalDateTime start = slot == null ? null : slot.getSlotDate().atTime(slot.getStartTime());
         return ReservationVO.builder()
                 .reservationId(reservation.getReservationId())
                 .userId(reservation.getUserId())
@@ -286,7 +320,21 @@ public class ReservationServiceImpl implements ReservationService {
                 .createdAt(reservation.getCreatedAt())
                 .cancelledAt(reservation.getCancelledAt())
                 .completedAt(reservation.getCompletedAt())
+                .checkedInAt(reservation.getCheckedInAt())
+                .canCheckIn(canCheckIn(reservation,start))
+                .checkinDeadline(start == null ? null : start.plusMinutes(checkInGraceMinutes))
                 .build();
+    }
+
+    private boolean canCheckIn(Reservation reservation, LocalDateTime start) {
+        if (start == null || reservation.getCheckedInAt() != null) {
+            return false;
+        }
+        if (!ReservationStatus.CONFIRMED.name().equals(reservation.getStatus())) {
+            return false;
+        }
+        LocalDateTime now = LocalDateTime.now();
+        return !now.isBefore(start) && !now.isAfter(start.plusMinutes(checkInGraceMinutes));
     }
 
     // 校验创建预约请求的合法性，抛出 BusinessException 表示请求不合法
@@ -306,5 +354,19 @@ public class ReservationServiceImpl implements ReservationService {
         if (dto.getRequestId() == null || dto.getRequestId().isBlank()) {
             throw new BusinessException("requestId 不能为空");
         }
+    }
+
+    // 未签到
+    @Override
+    public int expireUnCheckedInReservations() {
+        LocalDateTime now = LocalDateTime.now();
+        List<Reservation> expired = reservationMapper.selectExpiredCheckIn(now, TASK_BATCH_SIZE, checkInGraceMinutes);
+        int affected = 0;
+        for (Reservation reservation : expired) {
+            if (transit(reservation, ReservationStatus.EXPIRED)) {
+                affected++;
+            }
+        }
+        return affected;
     }
 }

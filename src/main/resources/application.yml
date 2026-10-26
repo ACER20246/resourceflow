@@ -36,4 +36,8 @@ resourceflow:
     # 设置jwt过期时间
     jwtExpirationMillis: 7200000
 
+  reservation:
+    # 设置资源预留时间，单位为分钟
+    initial-status: CONFIRMED
+    reservation-expiration-minutes: 15
 

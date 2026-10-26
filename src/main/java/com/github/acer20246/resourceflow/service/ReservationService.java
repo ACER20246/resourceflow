@@ -50,8 +50,24 @@ public interface ReservationService {
 
     /**
      * 将已结束的 CONFIRMED 预约批量置为 COMPLETED。
-     *
      * @return 处理条数
      */
     int completeFinishedReservations();
+
+
+    /**
+     * 管理员端确认到场，只有 CONFIRMED 状态的预约可以被确认到场。
+     * @param reservationId 预约 ID
+     * @param operatorId   操作人 ID
+     * @param admin     是否为管理员
+     * @return true 表示成功，false 表示失败
+     */
+    boolean checkInReservation(Long reservationId, Long operatorId, boolean admin);
+
+    /**
+     * 将超过预约开始时间的未签到预约批量置为 EXPIRED。
+     *
+     * @return 处理条数
+     */
+    int expireUnCheckedInReservations();
 }

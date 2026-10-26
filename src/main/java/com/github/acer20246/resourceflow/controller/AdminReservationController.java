@@ -50,4 +50,15 @@ public class AdminReservationController {
                 SecurityUtils.currentUserId(),
                 true);
     }
+
+    @Operation(summary = "管理员代签到预约")
+    @PatchMapping("/{reservationId}/check-in")
+    public boolean checkIn(@PathVariable Long reservationId) {
+        log.info("管理员签到预约: {}", reservationId);
+        return reservationService.checkInReservation(
+                reservationId,
+                SecurityUtils.currentUserId(),
+                true
+        );
+    }
 }

@@ -5,6 +5,7 @@ import com.github.acer20246.resourceflow.entity.Reservation;
 import com.github.acer20246.resourceflow.vo.SlotConflictVO;
 import org.apache.ibatis.annotations.Mapper;
 import org.apache.ibatis.annotations.Param;
+import org.apache.ibatis.annotations.Update;
 
 import java.time.LocalDate;
 import java.time.LocalDateTime;
@@ -57,4 +58,22 @@ public interface ReservationMapper extends BaseMapper<Reservation> {
      * @return 待完成的预约
      */
     List<Reservation> selectFinishedConfirmed(@Param("now") LocalDateTime now, @Param("limit") int limit);
+
+    /**
+     * 签到：只有confirmed状态的预约才能签到，且只能签到一次。
+     * @param reservationId
+     * @return
+     */
+    @Update("UPDATE reservation SET checked_in_at = NOW(3) WHERE reservation_id = #{reservationId} AND status = 'CONFIRMED' AND checked_in_at IS NULL")
+    int checkInReservation(Long reservationId);
+
+    /**
+     * 查看过期的签到：将超过预约开始时间的未签到预约标记为过期。
+     * @param now 当前时间
+     * @param limit 单批上限，避免长事务
+     * @param gracePeriodMinutes 宽限期（分钟）
+     * @return 过期的未签到预约
+     */
+    List<Reservation> selectExpiredCheckIn(@Param("now") LocalDateTime now, @Param("limit") int limit,long gracePeriodMinutes);
+
 }
