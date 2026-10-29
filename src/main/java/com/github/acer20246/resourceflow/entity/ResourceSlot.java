@@ -1,6 +1,7 @@
 package com.github.acer20246.resourceflow.entity;
 
 
+import com.baomidou.mybatisplus.annotation.TableId;
 import lombok.AllArgsConstructor;
 import lombok.Data;
 import lombok.NoArgsConstructor;
@@ -18,6 +19,7 @@ import java.util.Date;
  例如“2026-10-08 09:00 至 10:00”。它是系统控制预约库存和防超卖的核心表。
  */
 public class ResourceSlot {
+    @TableId(value = "slot_id")
     private Long slotId;
     //时间段Id
     private Long resourceId;

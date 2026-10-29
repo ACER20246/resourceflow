@@ -68,8 +68,7 @@
         SELECT r.*
         FROM reservation r JOIN resource_slot s ON s.slot_id = r.slot_id
         WHERE r.status = 'CONFIRMED'
-          AND TIMESTAMP(s.slot_date, s.start_time) &lt; #{now}
-          AND TIMESTAMP(s.slot_date, s.start_time) &gt; DATE_SUB(#{now}, INTERVAL #{gracePeriodMinutes} MINUTE)
+          AND TIMESTAMP(s.slot_date, s.start_time) &lt;= DATE_SUB(#{now}, INTERVAL #{gracePeriodMinutes} MINUTE)
           AND r.checked_in_at IS NULL
         ORDER BY r.reservation_id
         LIMIT #{limit}

@@ -39,5 +39,12 @@ resourceflow:
   reservation:
     # 设置资源预留时间，单位为分钟
     initial-status: CONFIRMED
-    reservation-expiration-minutes: 15
+    pending-timeout-minutes: 15          # 代码读的是这个名，不是 reservation-expiration-minutes
+    check-in-grace-minutes: 15
+    redis:
+      enabled: false
+      slot-ttl-seconds: 300
+      idempotent-ttl-seconds: 86400
+
+
 

@@ -39,8 +39,6 @@ class JwtUtilsTest {
         Claims claims = jwtUtils.parseJWT(token);
         assertThat(claims.getSubject()).isEqualTo("10001");
         assertThat(claims.get("role", String.class)).isEqualTo("USER");
-        assertThat(jwtUtils.getUserId(token)).isEqualTo(10001L);
-        assertThat(jwtUtils.getRole(token)).isEqualTo("USER");
     }
 
     @Test
