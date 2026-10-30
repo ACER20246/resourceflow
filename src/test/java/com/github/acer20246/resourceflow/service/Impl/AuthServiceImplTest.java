@@ -15,6 +15,7 @@ import org.mockito.InjectMocks;
 import org.mockito.Mock;
 import org.mockito.junit.jupiter.MockitoExtension;
 import org.springframework.security.crypto.password.PasswordEncoder;
+import org.springframework.test.context.ActiveProfiles;
 
 import static org.assertj.core.api.Assertions.assertThat;
 import static org.assertj.core.api.Assertions.assertThatThrownBy;
@@ -26,6 +27,7 @@ import static org.mockito.Mockito.when;
 /**
  * {@link AuthServiceImpl} 单元测试：覆盖登录成功/失败与注册成功/重复等场景。
  */
+@ActiveProfiles({"dev","test"})
 @ExtendWith(MockitoExtension.class)
 class AuthServiceImplTest {
 

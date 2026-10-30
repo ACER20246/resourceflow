@@ -6,6 +6,7 @@ import org.junit.jupiter.api.Test;
 import org.springframework.core.MethodParameter;
 import org.springframework.http.converter.HttpMessageNotReadableException;
 import org.springframework.mock.http.MockHttpInputMessage;
+import org.springframework.test.context.ActiveProfiles;
 import org.springframework.validation.BeanPropertyBindingResult;
 import org.springframework.validation.FieldError;
 import org.springframework.web.bind.MethodArgumentNotValidException;
@@ -17,6 +18,7 @@ import static org.assertj.core.api.Assertions.assertThat;
 /**
  * {@link GlobalExceptionHandler} 单元测试：验证各类异常到统一响应结构的映射。
  */
+@ActiveProfiles({"dev","test"})
 class GlobalExceptionHandlerTest {
 
     private final GlobalExceptionHandler handler = new GlobalExceptionHandler();

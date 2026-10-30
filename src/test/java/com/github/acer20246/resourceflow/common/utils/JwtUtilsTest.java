@@ -4,6 +4,7 @@ import io.jsonwebtoken.Claims;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Test;
+import org.springframework.test.context.ActiveProfiles;
 import org.springframework.test.util.ReflectionTestUtils;
 
 import static org.assertj.core.api.Assertions.assertThat;
@@ -12,6 +13,7 @@ import static org.assertj.core.api.Assertions.assertThatThrownBy;
 /**
  * {@link JwtUtils} 单元测试：覆盖令牌生成、解析以及各类异常令牌场景。
  */
+@ActiveProfiles({"dev","test"})
 class JwtUtilsTest {
 
     /**

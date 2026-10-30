@@ -19,6 +19,7 @@ import org.mockito.ArgumentCaptor;
 import org.mockito.InjectMocks;
 import org.mockito.Mock;
 import org.mockito.junit.jupiter.MockitoExtension;
+import org.springframework.test.context.ActiveProfiles;
 
 import java.util.List;
 
@@ -35,6 +36,7 @@ import static org.mockito.Mockito.when;
  * {@link UserServiceImpl} 单元测试：覆盖用户查询、状态/角色修改、分页查询与删除。
  */
 @ExtendWith(MockitoExtension.class)
+@ActiveProfiles({"dev","test"})
 class UserServiceImplTest {
 
     @Mock
