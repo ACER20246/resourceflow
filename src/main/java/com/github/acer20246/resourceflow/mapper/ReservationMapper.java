@@ -76,4 +76,5 @@ public interface ReservationMapper extends BaseMapper<Reservation> {
      */
     List<Reservation> selectExpiredCheckIn(@Param("now") LocalDateTime now, @Param("limit") int limit,long gracePeriodMinutes);
 
+    int expireUncheckedIn(@Param("reservationId") Long reservationId, @Param("now") LocalDateTime now, @Param("graceMinutes") long graceMinutes);
 }

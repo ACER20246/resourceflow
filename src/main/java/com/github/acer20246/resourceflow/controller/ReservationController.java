@@ -71,9 +71,8 @@ public class ReservationController {
     @PostMapping("/{reservationId}/complete")
     public ReservationVO completeReservation(@PathVariable Long reservationId) {
         log.info("完成预约: {}", reservationId);
-        return reservationService.changeStatus(
+        return reservationService.completeReservation(
                 reservationId,
-                ReservationStatus.COMPLETED.name(),
                 SecurityUtils.currentUserId(),
                 SecurityUtils.isAdmin());
     }

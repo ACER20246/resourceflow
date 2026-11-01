@@ -70,4 +70,9 @@ public interface ReservationService {
      * @return 处理条数
      */
     int expireUnCheckedInReservations();
+
+    /**
+     * 完成预约，用户主动结束使用；标记完成后名额不再回补。
+     */
+    ReservationVO completeReservation(Long reservationId, Long aLong, boolean admin);
 }

@@ -23,10 +23,12 @@ local ownerField = 'o:' .. owner
 if redis.call('HEXISTS', key, ownerField) == 0 then
     return 0
 end
+
 -- 释放占位
 redis.call('HDEL', key, ownerField)
 
 local n=redis.call('HINCRBY', key, 'n', -1)
+
 if n <0 then
     redis.call('HSET', key, 'n', 0)
 end

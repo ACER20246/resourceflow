@@ -14,18 +14,17 @@ import com.github.acer20246.resourceflow.entity.ResourceSlot;
 import com.github.acer20246.resourceflow.mapper.ReservationMapper;
 import com.github.acer20246.resourceflow.mapper.ResourceMapper;
 import com.github.acer20246.resourceflow.mapper.ResourceSlotMapper;
-import com.github.acer20246.resourceflow.mapper.UserMapper;
 import com.github.acer20246.resourceflow.service.ReservationGuard;
 import com.github.acer20246.resourceflow.service.ReservationService;
 import com.github.acer20246.resourceflow.service.ReservationTxService;
 import com.github.acer20246.resourceflow.vo.ReservationVO;
-import com.github.acer20246.resourceflow.vo.SlotConflictVO;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.beans.factory.annotation.Value;
-import org.springframework.dao.DuplicateKeyException;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
+import org.springframework.transaction.support.TransactionSynchronization;
+import org.springframework.transaction.support.TransactionSynchronizationManager;
 
 import java.time.LocalDateTime;
 import java.util.List;
@@ -97,6 +96,7 @@ public class ReservationServiceImpl implements ReservationService {
                 log.info("幂等键获取成功，继续处理: userId={}, requestId={}", userId, dto.getRequestId());
             }
         }
+        // 4. 原子占用名额，失败说明已被抢完
         ReservationGuard.OccupyResult occupyResult = guard.tryOccupy(slotKey,slot.getBookingCapacity(),token);
         if(occupyResult==ReservationGuard.OccupyResult.FULL) {
             guard.clear(idemKey,token);
@@ -136,7 +136,6 @@ public class ReservationServiceImpl implements ReservationService {
                 .ge(from != null, Reservation::getCreatedAt, from)
                 .lt(to != null, Reservation::getCreatedAt, to)
                 .orderByDesc(Reservation::getCreatedAt);
-
         reservationMapper.selectPage(page, wrapper);
         List<ReservationVO> records = page.getRecords().stream()
                 .map(this::toVO)
@@ -152,6 +151,7 @@ public class ReservationServiceImpl implements ReservationService {
             throw new BusinessException("无权操作他人的预约");
         }
         applyTransition(reservation, ReservationStatus.CANCELLED);
+
         return toVO(requireReservation(reservationId));
     }
 
@@ -239,6 +239,20 @@ public class ReservationServiceImpl implements ReservationService {
         if (target.releasesCapacity()) {
             resourceSlotMapper.release(reservation.getSlotId());
         }
+        ResourceSlot slot = resourceSlotMapper.selectById(reservation.getSlotId());
+        if (slot == null) {
+            throw new BusinessException("预约对应的时间段不存在");
+        }
+
+        String key = ReservationKeys.slot(slot);
+        String token = ReservationGuard.token(reservation.getUserId(), reservation.getRequestId());
+        TransactionSynchronizationManager.registerSynchronization(
+                new TransactionSynchronization() {
+                    @Override
+                    public void afterCommit() {
+                        guard.release(key, token);
+                    }
+                });
         return true;
     }
 
@@ -327,10 +341,42 @@ public class ReservationServiceImpl implements ReservationService {
         List<Reservation> expired = reservationMapper.selectExpiredCheckIn(now, TASK_BATCH_SIZE, checkInGraceMinutes);
         int affected = 0;
         for (Reservation reservation : expired) {
-            if (transit(reservation, ReservationStatus.EXPIRED)) {
+            int rows = reservationMapper.expireUncheckedIn(reservation.getReservationId(), now, checkInGraceMinutes);
+            if(rows==1){
+                resourceSlotMapper.release(reservation.getSlotId());
                 affected++;
             }
         }
         return affected;
+    }
+
+    @Override
+    public ReservationVO completeReservation(Long reservationId, Long aLong, boolean admin) {
+        Reservation reservation = requireReservation(reservationId);
+        if (!admin && !Objects.equals(reservation.getUserId(), aLong)) {
+            throw new BusinessException("无权操作他人的预约");
+        }
+        if(!ReservationStatus.CONFIRMED.name().equals(reservation.getStatus())) {
+            throw new BusinessException("只有已确认的预约可以完成");
+        }
+        if(!admin&&reservation.getCheckedInAt() == null) {
+            throw new BusinessException("未签到的预约无法完成");
+        }
+        ResourceSlot slot = resourceSlotMapper.selectById(reservation.getSlotId());
+        if(slot == null) {
+            throw new BusinessException("时间段不存在");
+        }
+        LocalDateTime now = LocalDateTime.now();
+        LocalDateTime start = slot.getSlotDate().atTime(slot.getStartTime());
+        LocalDateTime end = slot.getSlotDate().atTime(slot.getEndTime());
+        if(now.isBefore(start)) {
+            throw new BusinessException("预约尚未开始，无法完成");
+        }
+        if(now.isAfter(end)) {
+            throw new BusinessException("预约已结束，无法完成");
+        }
+        applyTransition(reservation, ReservationStatus.COMPLETED);
+        log.info("预约完成: reservationId={}, userId={}", reservationId, aLong);
+        return toVO(requireReservation(reservationId));
     }
 }

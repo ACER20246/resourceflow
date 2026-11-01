@@ -25,7 +25,8 @@ class ReservationGuardTest {
 
     @Mock
     StringRedisTemplate redis;
-    @Mock DefaultRedisScript<Long> occupyScript;
+    @Mock
+    DefaultRedisScript<Long> occupyScript;
     @Mock
     DefaultRedisScript<Long> releaseScript;
     ReservationGuard guard;

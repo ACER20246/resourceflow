@@ -132,7 +132,8 @@ public class ReservationGuard {
             switch (result.intValue()) {
                 case 0 -> {
                     return OccupyResult.OK;
-                }                case 1 -> {
+                }
+                case 1 -> {
                     return OccupyResult.FULL;
                 }
                 case 2 -> {

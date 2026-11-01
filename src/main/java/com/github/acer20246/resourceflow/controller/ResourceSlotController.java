@@ -27,7 +27,6 @@ public class ResourceSlotController {
     private final ResourceSlotService resourceSlotService;
 
     /**
-     * 分页查询时间段，供管理端使用。
      *
      * @param pageDTO 查询条件，字段为空表示不参与过滤
      * @return 时间段分页结果
