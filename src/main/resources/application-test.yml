@@ -1,0 +1,17 @@
+spring:
+  datasource:
+    hikari:
+      maximum-pool-size: 40        # 默认 10，30 并发会有一半线程在等连接         # application.yml 里是 false，这里必须打开
+resourceflow:
+  datasource:
+    driver-class-name: com.mysql.cj.jdbc.Driver
+    host: localhost
+    port: 3306
+    database: resourceflow_test
+    username: root
+    password: 6666
+  redis:
+    host: localhost
+    port: 6379
+    database: 2
+

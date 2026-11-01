@@ -3,8 +3,10 @@ package com.github.acer20246.resourceflow.config;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
+import org.springframework.core.io.ClassPathResource;
 import org.springframework.data.redis.connection.RedisConnectionFactory;
 import org.springframework.data.redis.core.RedisTemplate;
+import org.springframework.data.redis.core.script.DefaultRedisScript;
 import org.springframework.data.redis.serializer.GenericJacksonJsonRedisSerializer;
 import org.springframework.data.redis.serializer.StringRedisSerializer;
 import tools.jackson.databind.json.JsonMapper;
@@ -30,5 +32,25 @@ public class RedisConfig {
         //校验并初始化模板
         redisTemplate.afterPropertiesSet();
         return redisTemplate;
+    }
+
+    @Bean
+    public DefaultRedisScript<Long> slotOccupyScript() {
+        DefaultRedisScript<Long> redisScript = new DefaultRedisScript<>();
+        //设置lua脚本
+        redisScript.setLocation(new ClassPathResource("lua/slot_occupy.lua"));
+        //设置返回类型
+        redisScript.setResultType(Long.class);
+        return redisScript;
+    }
+
+    @Bean
+    public DefaultRedisScript<Long> slotReleaseScript() {
+        DefaultRedisScript<Long> redisScript = new DefaultRedisScript<>();
+        //设置lua脚本
+        redisScript.setLocation(new ClassPathResource("lua/slot_release.lua"));
+        //设置返回类型
+        redisScript.setResultType(Long.class);
+        return redisScript;
     }
 }

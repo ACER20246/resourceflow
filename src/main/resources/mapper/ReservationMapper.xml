@@ -1,0 +1,87 @@
+<?xml version="1.0" encoding="UTF-8" ?>
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN"
+        "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+<mapper namespace="com.github.acer20246.resourceflow.mapper.ReservationMapper">
+
+    <!--
+      时间重叠判定使用半开区间 [start, end),时间重叠校验
+      两个时间区间重叠的条件是：existing.start_time < new.end_time AND existing.end_time > new.start_time
+      首尾相接（09:00-10:00 与 10:00-11:00）不算冲突。
+    -->
+    <select id="selectUserOverlaps" resultType="com.github.acer20246.resourceflow.vo.SlotConflictVO">
+        SELECT r.reservation_id AS reservationId,
+        r.status         AS status,
+        s.slot_id        AS slotId,
+        s.resource_id    AS resourceId,
+        s.start_time     AS startTime,
+        s.end_time       AS endTime,
+        res.name         AS resourceName
+        FROM reservation r JOIN resource_slot s ON s.slot_id = r.slot_id
+        LEFT JOIN `resource` res ON res.resource_id = s.resource_id
+        WHERE r.user_id = #{userId}
+        AND s.slot_date = #{slotDate}
+        AND s.start_time &lt; #{endTime}
+        AND s.end_time &gt; #{startTime}
+        AND r.status IN
+        <foreach collection="occupyingStatuses" item="statusItem" open="(" separator="," close=")">
+            #{statusItem}
+        </foreach>
+        <if test="excludeReservationId != null">
+            AND r.reservation_id != #{excludeReservationId}
+        </if>
+        LIMIT 1
+    </select>
+
+    <!--
+      更新状态流转，使用乐观锁实现幂等性，避免重复提交、重复消费导致状态异常。
+      条件更新（compare-and-set）：只有当前状态与期望状态一致时才允许流转，
+      并发重复提交、重复消费只会有一条成功。
+    -->
+    <update id="transit">
+        UPDATE reservation
+        SET status        = #{target},
+            active_key    = IF(#{target} IN ('PENDING', 'CONFIRMED'), active_key, NULL),
+            cancelled_at  = IF(#{target} = 'CANCELLED', #{now}, cancelled_at),
+            completed_at  = IF(#{target} = 'COMPLETED', #{now}, completed_at),
+            expired_at    = IF(#{target} = 'EXPIRED', #{now}, expired_at),
+            updated_at    = #{now}
+        WHERE reservation_id = #{reservationId}
+          AND status = #{expected}
+    </update>
+
+    <update id="expireUncheckedIn">
+        UPDATE reservation r join resource_slot s on r.slot_id = s.slot_id
+        SET status = 'EXPIRED',expired_at = #{now}
+        WHERE reservation_id = #{reservationId}
+          AND status = 'CONFIRMED'
+          AND checked_in_at IS NULL
+          AND TIMESTAMP(s.slot_date, s.start_time) &lt;= DATE_SUB(#{now}, INTERVAL #{graceMinutes} MINUTE)
+    </update>
+
+    <!--
+      查询已确认的预约，用于定时任务扫描过期预约并流转状态。
+      过期条件：当前时间 > 预约结束时间
+    -->
+    <select id="selectFinishedConfirmed" resultType="com.github.acer20246.resourceflow.entity.Reservation">
+        SELECT r.*
+        FROM reservation r JOIN resource_slot s ON s.slot_id = r.slot_id
+        WHERE r.status = 'CONFIRMED'
+          AND TIMESTAMP(s.slot_date, s.end_time) &lt; #{now}
+          AND r.checked_in_at IS NOT NULL
+        ORDER BY r.reservation_id
+        LIMIT #{limit}
+    </select>
+
+    <!--    新增未签到扫描-->
+    <select id="selectExpiredCheckIn" resultType="com.github.acer20246.resourceflow.entity.Reservation">
+        SELECT r.*
+        FROM reservation r JOIN resource_slot s ON s.slot_id = r.slot_id
+        WHERE r.status = 'CONFIRMED'
+          AND TIMESTAMP(s.slot_date, s.start_time) &lt;= DATE_SUB(#{now}, INTERVAL #{gracePeriodMinutes} MINUTE)
+          AND r.checked_in_at IS NULL
+        ORDER BY r.reservation_id
+        LIMIT #{limit}
+    </select>
+
+
+</mapper>

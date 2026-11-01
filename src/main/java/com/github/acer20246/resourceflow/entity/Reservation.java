@@ -1,5 +1,6 @@
 package com.github.acer20246.resourceflow.entity;
 
+import com.baomidou.mybatisplus.annotation.TableId;
 import lombok.AllArgsConstructor;
 import lombok.Data;
 import lombok.NoArgsConstructor;
@@ -10,6 +11,7 @@ import java.time.LocalDateTime;
 @NoArgsConstructor
 @AllArgsConstructor
 public class Reservation {
+    @TableId(value = "reservation_id")
     private Long reservationId;
     private Long userId;
     private Long slotId;
@@ -22,4 +24,6 @@ public class Reservation {
     private LocalDateTime cancelledAt;
     private LocalDateTime completedAt;
     private LocalDateTime updatedAt;
+    private LocalDateTime expiredAt;
+    private LocalDateTime checkedInAt;
 }

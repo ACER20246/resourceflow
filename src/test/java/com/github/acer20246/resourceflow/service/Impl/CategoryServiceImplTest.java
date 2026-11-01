@@ -16,6 +16,7 @@ import org.mockito.ArgumentCaptor;
 import org.mockito.InjectMocks;
 import org.mockito.Mock;
 import org.mockito.junit.jupiter.MockitoExtension;
+import org.springframework.test.context.ActiveProfiles;
 
 import java.util.List;
 
@@ -30,6 +31,7 @@ import static org.mockito.Mockito.when;
  * {@link CategoryServiceImpl} 单元测试：覆盖分类的增删改查与重名/依赖校验。
  */
 @ExtendWith(MockitoExtension.class)
+@ActiveProfiles({"dev","test"})
 class CategoryServiceImplTest {
 
     @Mock

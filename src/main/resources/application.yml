@@ -1,6 +1,6 @@
 spring:
   profiles:
-    active: dev
+    active: test
   datasource:
     driver-class-name: ${resourceflow.datasource.driver-class-name}
     url: jdbc:mysql://${resourceflow.datasource.host}:${resourceflow.datasource.port}/${resourceflow.datasource.database}?serverTimezone=Asia/Shanghai&useUnicode=true&characterEncoding=utf-8&zeroDateTimeBehavior=convertToNull&useSSL=false&allowPublicKeyRetrieval=true
@@ -25,7 +25,8 @@ mybatis-plus:
 logging:
   pattern:
     console: "%d{yyyy-MM-dd HH:mm:ss.SSS} [%thread] %-5level [%X{traceId}] %logger{36} - %msg%n"
-#swagger
+
+#springdoc+swagger配置
 springdoc:
   packages-to-scan: com.github.acer20246.resourceflow.controller
 
@@ -35,5 +36,16 @@ resourceflow:
     secret-key: ${JWT_SECRET_KEY:default_32byte_key_1234567890123456}
     # 设置jwt过期时间
     jwtExpirationMillis: 7200000
+
+  reservation:
+    # 设置资源预留时间，单位为分钟
+    initial-status: CONFIRMED
+    pending-timeout-minutes: 15          # 代码读的是这个名，不是 reservation-expiration-minutes
+    check-in-grace-minutes: 15
+    redis:
+      enabled: true
+      slot-ttl-seconds: 300
+      idempotent-ttl-seconds: 86400
+
 
 
